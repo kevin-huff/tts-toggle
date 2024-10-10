@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Toggle Button</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --header-color: #1a73e8;
+            --button-bg: #1a73e8;
+            --button-color: #ffffff;
+            --button-hover: #155db1;
+            --input-border: #cccccc;
+            --url-box-bg: #f1f3f4;
+        }
+
+        .dark {
+            --bg-color: #1a1a1a;
+            --container-bg: #2c2c2c;
+            --text-color: #e0e0e0;
+            --header-color: #4da3ff;
+            --button-bg: #4da3ff;
+            --button-color: #ffffff;
+            --button-hover: #2c8ae8;
+            --input-border: #555555;
+            --url-box-bg: #3a3a3a;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #1a1a1a;
+            color: var(--text-color);
+        }
+        #toggleButton {
+            font-size: 24px;
+            padding: 20px 40px;
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #toggleButton:hover {
+            background-color: #155db1;
+        }
+        #statusIcon {
+            width: 50px;
+            height: 50px;
+            margin-left: 20px;
+        }
+        .container {
+            text-align: center;
+        }
+        .status-on #statusIcon .microphone {
+            fill: #00FF00;
+        }
+        .status-off #statusIcon .microphone {
+            fill: #FF0000;
+        }
+        .status-off #statusIcon .cross-hatch {
+            display: block;
+        }
+        .status-on #statusIcon .cross-hatch {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <svg id="statusIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+            <!-- Microphone Icon -->
+            <g class="microphone">
+                <path d="M50 20c-5.52 0-10 4.48-10 10v20c0 5.52 4.48 10 10 10s10-4.48 10-10V30c0-5.52-4.48-10-10-10z"/>
+                <path d="M65 50c0 8.28-6.72 15-15 15s-15-6.72-15-15h-5c0 10.27 7.72 18.69 17.5 19.78V80h-10v5h25v-5h-10v-10.22C62.28 68.69 70 60.27 70 50h-5z"/>
+            </g>
+
+            <!-- Speech Bubble with "TTS" Text -->
+            <g>
+                <rect x="60" y="10" width="30" height="20" rx="3" fill="#333333"/>
+                <text x="75" y="25" font-family="Arial" font-size="12" fill="#00FF00" text-anchor="middle">TTS</text>
+            </g>
+
+            <!-- Cross-hatch pattern -->
+            <g class="cross-hatch" stroke="#000" stroke-width="2">
+                <line x1="0" y1="0" x2="100" y2="100" />
+                <line x1="100" y1="0" x2="0" y2="100" />
+            </g>
+        </svg>
+        <br />
+        <button id="toggleButton">Toggle TTS</button>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const toggleButton = document.getElementById('toggleButton');
+        const statusIcon = document.getElementById('statusIcon');
+        const container = document.querySelector('.container');
+
+        // Get the key from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const key = urlParams.get('key');
+
+        if (key) {
+            socket.emit('joinRoom', key);
+        } else {
+            console.error('No key provided in the URL');
+            toggleButton.disabled = true;
+            toggleButton.textContent = 'Key Missing';
+        }
+
+        toggleButton.addEventListener('click', () => {
+            const newStatus = !container.classList.contains('status-on');
+            socket.emit('toggleTTS', { key, status: newStatus });
+        });
+
+        socket.on('ttsStatus', ({ status: ttsStatus }) => {
+            container.className = ttsStatus ? 'container status-on' : 'container status-off';
+            toggleButton.textContent = `Turn TTS ${ttsStatus ? 'OFF' : 'ON'}`;
+        });
+    </script>
+</body>
+</html>

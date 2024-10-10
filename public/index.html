@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTS Toggle Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --container-bg: #ffffff;
+            --text-color: #333333;
+            --header-color: #1a73e8;
+            --button-bg: #1a73e8;
+            --button-color: #ffffff;
+            --button-hover: #155db1;
+            --input-border: #cccccc;
+            --url-box-bg: #f1f3f4;
+        }
+
+        .dark {
+            --bg-color: #1a1a1a;
+            --container-bg: #2c2c2c;
+            --text-color: #e0e0e0;
+            --header-color: #4da3ff;
+            --button-bg: #4da3ff;
+            --button-color: #ffffff;
+            --button-hover: #2c8ae8;
+            --input-border: #555555;
+            --url-box-bg: #3a3a3a;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .container {
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: var(--header-color);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: var(--container-bg);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+        }
+        input, button {
+            font-size: 16px;
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid var(--input-border);
+            border-radius: 4px;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+        button {
+            background-color: var(--button-bg);
+            color: var(--button-color);
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: var(--button-hover);
+        }
+        button:disabled {
+            background-color: var(--input-border);
+            cursor: not-allowed;
+        }
+        #toggleButton {
+            font-size: 18px;
+            padding: 15px 30px;
+            margin-top: 10px;
+        }
+        #statusContainer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #statusIcon {
+            width: 100px;
+            height: 100px;
+            transition: all 0.3s ease;
+        }
+        .status-on #statusIcon .microphone {
+            fill: #00FF00;
+        }
+        .status-off #statusIcon .microphone {
+            fill: #FF0000;
+        }
+        .status-off #statusIcon .cross-hatch {
+            display: block;
+        }
+        .status-on #statusIcon .cross-hatch {
+            display: none;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .pulse {
+            animation: pulse 0.5s;
+        }
+        .url-box {
+            background-color: var(--url-box-bg);
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin-top: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .url-box:hover {
+            filter: brightness(90%);
+        }
+        .copy-feedback {
+            color: #34a853;
+            display: none;
+            margin-left: 10px;
+        }
+        .theme-switch-wrapper {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .theme-switch {
+            display: inline-block;
+            height: 34px;
+            position: relative;
+            width: 60px;
+        }
+        .theme-switch input {
+            display: none;
+        }
+        .slider {
+            background-color: #ccc;
+            bottom: 0;
+            cursor: pointer;
+            left: 0;
+            position: absolute;
+            right: 0;
+            top: 0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider:before {
+            background-color: #fff;
+            bottom: 4px;
+            content: "";
+            height: 26px;
+            left: 4px;
+            position: absolute;
+            transition: .4s;
+            width: 26px;
+            border-radius: 50%;
+        }
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+        .slider-label {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1>TTS Toggle Dashboard</h1>
+        
+        <div class="section" id="keySection">
+            <h2>Your Unique Key</h2>
+            <input type="text" id="keyInput" placeholder="Enter your key">
+            <button id="setKeyButton">Set Key</button>
+            <button id="generateKeyButton">Generate Random Key</button>
+            <div id="currentKey">Current Key: <span id="keyDisplay">Not set</span></div>
+            <div class="url-box" id="displayUrl" title="Click to copy">Display URL: http://localhost:3000/display?key=your_key</div>
+            <span class="copy-feedback" id="displayUrlFeedback">Copied!</span>
+            <div class="url-box" id="toggleUrl" title="Click to copy">Toggle URL: http://localhost:3000/toggle?key=your_key</div>
+            <span class="copy-feedback" id="toggleUrlFeedback">Copied!</span>
+        </div>
+
+        <div class="section" id="controlPanel">
+            <h2>TTS Control</h2>
+            <button id="toggleButton" disabled>Toggle TTS</button>
+            <div id="statusContainer">
+                <svg id="statusIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+                    <!-- Microphone Icon -->
+                    <g class="microphone">
+                        <path d="M50 20c-5.52 0-10 4.48-10 10v20c0 5.52 4.48 10 10 10s10-4.48 10-10V30c0-5.52-4.48-10-10-10z"/>
+                        <path d="M65 50c0 8.28-6.72 15-15 15s-15-6.72-15-15h-5c0 10.27 7.72 18.69 17.5 19.78V80h-10v5h25v-5h-10v-10.22C62.28 68.69 70 60.27 70 50h-5z"/>
+                    </g>
+
+                    <!-- Speech Bubble with "TTS" Text -->
+                    <g>
+                        <rect x="60" y="10" width="30" height="20" rx="3" fill="#333333"/>
+                        <text x="75" y="25" font-family="Arial" font-size="12" fill="#00FF00" text-anchor="middle">TTS</text>
+                    </g>
+
+                    <!-- Cross-hatch pattern -->
+                    <g class="cross-hatch" stroke="#000" stroke-width="2">
+                        <line x1="0" y1="0" x2="100" y2="100" />
+                        <line x1="100" y1="0" x2="0" y2="100" />
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket = io();
+        let key = '';
+
+        const keyInput = document.getElementById('keyInput');
+        const setKeyButton = document.getElementById('setKeyButton');
+        const generateKeyButton = document.getElementById('generateKeyButton');
+        const keyDisplay = document.getElementById('keyDisplay');
+        const toggleButton = document.getElementById('toggleButton');
+        const statusContainer = document.getElementById('statusContainer');
+        const statusIcon = document.getElementById('statusIcon');
+        const displayUrl = document.getElementById('displayUrl');
+        const toggleUrl = document.getElementById('toggleUrl');
+        const displayUrlFeedback = document.getElementById('displayUrlFeedback');
+        const toggleUrlFeedback = document.getElementById('toggleUrlFeedback');
+
+        function setKey(newKey) {
+            key = newKey;
+            keyDisplay.textContent = key;
+            displayUrl.textContent = `Display URL: http://localhost:3000/display?key=${key}`;
+            toggleUrl.textContent = `Toggle URL: http://localhost:3000/toggle?key=${key}`;
+            toggleButton.disabled = false;
+            socket.emit('joinRoom', key);
+        }
+
+        function copyToClipboard(text, feedbackElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                feedbackElement.style.display = 'inline';
+                setTimeout(() => {
+                    feedbackElement.style.display = 'none';
+                }, 2000);
+            });
+        }
+
+        setKeyButton.addEventListener('click', () => {
+            const newKey = keyInput.value.trim();
+            if (newKey) {
+                setKey(newKey);
+            } else {
+                alert('Please enter a valid key');
+            }
+        });
+
+        generateKeyButton.addEventListener('click', () => {
+            const randomKey = Math.random().toString(36).substring(2, 10);
+            keyInput.value = randomKey;
+            setKey(randomKey);
+        });
+
+        toggleButton.addEventListener('click', () => {
+            const newStatus = !statusContainer.classList.contains('status-on');
+            socket.emit('toggleTTS', { key, status: newStatus });
+        });
+
+        socket.on('ttsStatus', ({ status: ttsStatus }) => {
+            statusContainer.className = ttsStatus ? 'status-on' : 'status-off';
+            toggleButton.textContent = `Turn TTS ${ttsStatus ? 'OFF' : 'ON'}`;
+            statusIcon.classList.add('pulse');
+            setTimeout(() => statusIcon.classList.remove('pulse'), 500);
+        });
+
+        displayUrl.addEventListener('click', () => {
+            copyToClipboard(displayUrl.textContent.split(': ')[1], displayUrlFeedback);
+        });
+
+        toggleUrl.addEventListener('click', () => {
+            copyToClipboard(toggleUrl.textContent.split(': ')[1], toggleUrlFeedback);
+        });
+
+        // Check for key in URL on page load
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlKey = urlParams.get('key');
+        if (urlKey) {
+            keyInput.value = urlKey;
+            setKey(urlKey);
+        }
+    </script>
+</body>
+</html>
